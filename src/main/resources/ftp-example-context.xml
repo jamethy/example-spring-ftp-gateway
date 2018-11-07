@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+        http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd">
+
+    <bean id="ExampleFtpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
+        <property name="host" value="${example.ftp.ip}"/>
+        <property name="port" value="${example.ftp.port:21}"/>
+        <property name="username" value="${example.ftp.username}"/>
+        <property name="password" value="${example.ftp.password}"/>
+    </bean>
+
+
+    <!-- FTP channels -->
+    <int:channel id="exampleLsChannel"/>
+    <int:channel id="exampleGetChannel"/>
+    <int:channel id="exampleMGetChannel"/>
+    <int:channel id="exampleRmChannel"/>
+    <int:channel id="exampleMvChannel"/>
+    <int:channel id="examplePutChannel"/>
+    <!--<int:channel id="exampleMPutChannel"/>-->
+
+    <int:gateway id="ftpExampleGateway" service-interface="com.james.ftpexample.FtpExampleGateway">
+        <int:method name="listFiles" request-channel="exampleLsChannel"/>
+        <int:method name="getFile" request-channel="exampleGetChannel"/>
+        <int:method name="getFiles" request-channel="exampleMGetChannel"/>
+        <int:method name="deleteFile" request-channel="exampleRmChannel"/>
+        <int:method name="move" request-channel="exampleMvChannel"/>
+        <int:method name="put" request-channel="examplePutChannel"/>
+        <!--<int:method name="putFiles" request-channel="exampleMPutChannel"/>-->
+    </int:gateway>
+
+    <int:logging-channel-adapter id="loggerChannel" level="INFO"/>
+
+
+    <int-ftp:outbound-gateway id="exampleGatewayLS"
+                              command="ls"
+                              command-options="-dirs"
+                              expression="payload"
+                              request-channel="exampleLsChannel"
+                              session-factory="ExampleFtpSessionFactory"
+    />
+
+    <int-ftp:outbound-gateway id="exampleGatewayGet"
+                              command="get"
+                              expression="payload"
+                              local-directory="${example.ftp.localdir}"
+                              request-channel="exampleGetChannel"
+                              session-factory="ExampleFtpSessionFactory"
+    />
+
+    <int-ftp:outbound-gateway id="exampleGatewayMGet"
+                              command="mget"
+                              expression="payload"
+                              local-directory="${example.ftp.localdir}"
+                              request-channel="exampleMGetChannel"
+                              session-factory="ExampleFtpSessionFactory"
+    />
+
+    <int-ftp:outbound-gateway id="exampleGatewayRM"
+                              command="rm"
+                              expression="payload"
+                              reply-channel="loggerChannel"
+                              request-channel="exampleRmChannel"
+                              requires-reply="false"
+                              session-factory="ExampleFtpSessionFactory"
+    />
+
+    <int-ftp:outbound-gateway id="exampleGatewayMV"
+                              command="mv"
+                              expression="payload"
+                              reply-channel="loggerChannel"
+                              request-channel="exampleMvChannel"
+                              requires-reply="false"
+                              session-factory="ExampleFtpSessionFactory"
+    />
+
+    <int-ftp:outbound-gateway id="exampleGatewayPUT"
+                              command="put"
+                              expression="payload"
+                              remote-directory-expression="'/'"
+                              remote-filename-generator-expression="headers['destination']"
+                              reply-channel="loggerChannel"
+                              request-channel="examplePutChannel"
+                              requires-reply="false"
+                              session-factory="ExampleFtpSessionFactory"
+    />
+
+    <!--<int-ftp:outbound-gateway id="exampleGatewayMPUT"-->
+                              <!--command="mput"-->
+                              <!--expression="payload"-->
+                              <!--remote-directory-expression="headers['destination-dir']"-->
+                              <!--reply-channel="loggerChannel"-->
+                              <!--request-channel="exampleMPutChannel"-->
+                              <!--requires-reply="false"-->
+                              <!--session-factory="ExampleFtpSessionFactory"-->
+    <!--/>-->
+
+</beans>
