@@ -63,7 +63,7 @@ public interface FtpExampleGateway {
      * @param from File/directory to move
      * @param to   Location to move file to
      */
-    void move(String from, @Header(name = "file_renameTo") String to);
+    void move(String from, @Header("file_renameTo") String to);
 
     /**
      * Places a file on the remote host
@@ -71,7 +71,7 @@ public interface FtpExampleGateway {
      * @param file        File to place
      * @param destination Full path including file name of where to place file
      */
-    void put(File file, @Header(name = "destination") String destination);
+    void put(File file, @Header("destination") String destination);
 
     /**
      * Places files on the remote host
